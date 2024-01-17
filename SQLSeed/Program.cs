@@ -25,7 +25,7 @@ namespace SQLSeed
 
             string tableCreateSql = System.IO.File.ReadAllText("Users.sql");
             dataContextDapper.ExecuteSQL(tableCreateSql);
-
+        
             string usersJson = System.IO.File.ReadAllText("Users.json");
 
             IEnumerable<Users>? users = JsonConvert.DeserializeObject<IEnumerable<Users>>(usersJson);

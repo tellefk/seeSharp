@@ -72,7 +72,25 @@ namespace DotnetAPI.Controllers
 
             return responseList;
         }
-    }
+
+
+        [HttpPost("PostUser", Name = "Add User")]
+        public ActionResult<List<string>> PostUser(string UserName string)
+        {
+            List<string> responseList = new List<string> { "test1", "test2", "test3" };
+
+            if (UserId != null)
+            {
+                responseList.Add(UserId);
+            }
+
+            return responseList;
+        }
+
+
+
+
+    }       
     public class User
     {
         public int Id { get; set; }
