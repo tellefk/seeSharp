@@ -39,6 +39,17 @@ namespace DotnetAPI
             }
         }
 
+
+        public async Task<int> ExecuteCommandAsync(string sql, object parameters)
+        {
+            using (var connection = new SqlConnection(_config.GetConnectionString("DefaultConnection")))
+            {
+                await connection.OpenAsync();
+                
+                return await connection.ExecuteAsync(sql, parameters);
+            }
+        }
+
         public async Task<IEnumerable<T>> LoadDataPostgres<T>(string sql)
         {
             using (IDbConnection dbConnection = new NpgsqlConnection(_config.GetConnectionString("PostgresConnection")))

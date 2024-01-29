@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 using Dapper;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using DotnetAPI.Models;
+using DotnetAPI.Abstractions;
+
 
 namespace DotnetAPI.Controllers
 {
@@ -75,7 +78,7 @@ namespace DotnetAPI.Controllers
 
 
         [HttpPost("PostUser", Name = "Add User")]
-        public ActionResult<List<string>> PostUser(string UserName string)
+        public ActionResult<List<string>> PostUser(string UserName, string UserId)
         {
             List<string> responseList = new List<string> { "test1", "test2", "test3" };
 
@@ -87,15 +90,100 @@ namespace DotnetAPI.Controllers
             return responseList;
         }
 
+        [HttpPost("CreateUser", Name = "Create User")]
+        public async Task<IActionResult> CreateUser(User user)
+        {
+
+            string sql = @"INSERT INTO TutorialAppSchema.Users (FirstName, LastName, Email, Gender, Active) 
+                               VALUES (@FirstName, @LastName, @Email, @Gender, @Active)";
+
+
+            await _dapper.ExecuteCommandAsync(sql, new
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                Gender = user.Gender,
+                Active = user.Active
+            });
+
+            return Ok("User created successfully");
+
+        }
 
 
 
-    }       
-    public class User
-    {
-        public int Id { get; set; }
-        public string Username { get; set; }
-        // Other properties matching the users table columns
+        [HttpPut("updateuser/{UserId}")]
+        public async Task<IActionResult> EditUser(string UserId, User user)
+        {
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            string sql = @"UPDATE TutorialAppSchema.Users 
+                           SET FirstName = @FirstName, LastName = @LastName, Email = @Email, Gender = @Gender, Active = @Active 
+                           WHERE UserId = @UserId";
+            await _dapper.ExecuteCommandAsync(sql, new
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                Gender = user.Gender,
+                Active = user.Active,
+                UserId = UserId
+            });
+            // Your code for updating the user goes here
+
+            return Ok("User updated successfully");
+        }
+
+
+        [HttpPatch("UpdateEmail/{UserId}")]
+        public async Task<IActionResult> UpdateEmail(string UserId, [FromBody] string Email)
+        {
+            string sql = @"UPDATE TutorialAppSchema.Users 
+                           SET Email = @Email 
+                           WHERE UserId = @UserId";
+            await _dapper.ExecuteCommandAsync(sql, new
+            {
+                Email = Email,
+                UserId = UserId
+            });
+
+            return Ok("Email updated successfully");
+        }
+
+
+        [HttpPatch("UpdateEmailErrorType/{UserId}")]
+        public async Task<Result> UpdateEmail2(string UserId, [FromBody] string Email)
+        {
+            User? user = await _dapper.LoadDataSingle<User>($"SELECT * FROM TutorialAppSchema.Users WHERE UserId = '{UserId}'");
+
+            if (user == null)
+            {
+                return Result.Failure(new Error("UserNotFound", $"User with id {UserId} not found"));
+            }
+
+            string sql = @"UPDATE TutorialAppSchema.Users 
+                           SET Email = @Email 
+                           WHERE UserId = @UserId";
+            await _dapper.ExecuteCommandAsync(sql, new
+            {
+                Email = Email,
+                UserId = UserId
+            });
+            
+            return Result.Success();
+        }
+
+
+
+
+
+
+
     }
+
 
 }
