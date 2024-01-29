@@ -158,11 +158,19 @@ namespace DotnetAPI.Controllers
         [HttpPatch("UpdateEmailErrorType/{UserId}")]
         public async Task<Result> UpdateEmail2(string UserId, [FromBody] string Email)
         {
-            User? user = await _dapper.LoadDataSingle<User>($"SELECT * FROM TutorialAppSchema.Users WHERE UserId = '{UserId}'");
+            var user = await _dapper.LoadDataSingle<User>($"SELECT * FROM TutorialAppSchema.Users WHERE UserId = '{UserId}'");
 
             if (user == null)
             {
-                return Result.Failure(new Error("UserNotFound", $"User with id {UserId} not found"));
+                // return Result.Failure(new Error("UserNotFound", $"User with id {UserId} not found"));
+                return UserError.UserIsNotFound;
+            }
+
+
+            if (!IsValidEmail(Email))
+            {
+                // return Result.Failure(new Error("InvalidEmail", $"Email {Email} is invalid"));
+                return UserError.EmailIsInvalid;
             }
 
             string sql = @"UPDATE TutorialAppSchema.Users 
@@ -173,8 +181,26 @@ namespace DotnetAPI.Controllers
                 Email = Email,
                 UserId = UserId
             });
-            
+
             return Result.Success();
+
+
+
+
+        }
+
+
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
 
